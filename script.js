@@ -55,6 +55,38 @@ function renderTodos(){
         const span = document.createElement("span");
         span.textContent = todo.text; 
 
+        //handle doble klik untuk edit data
+        span.addEventListener("dblclick", () => {
+            const input = document.createElement("input");
+            input.type = "text";
+            input.value = todo.text;
+
+            let isCancelled = false; //flag
+
+            span.replaceWith(input);
+            input.focus();
+            input.select();
+
+            input.addEventListener("blur", () => {
+                if (isCancelled) return; //ESC jangan save
+                if (input.value.trim() === "") return;
+
+                todo.text = input.value;
+                updateApp();
+            });
+
+            input.addEventListener("keydown", (e) => {
+                if (e.key === "Enter") {
+                    input.blur();
+                }
+                if (e.key === "Escape") {
+                    isCancelled = true; //tandai cancel
+
+                    renderTodos();
+                }
+            });
+        });
+
         if(todo.done){
             span.classList.add("done");
         }

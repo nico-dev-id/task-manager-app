@@ -95,11 +95,12 @@ button{
 /* ===== BUTTON CLEAR ALL =====*/
 .actions {
     margin-top: 10px;
-    text-align: right;
+    display: flex;
+    justify-content: flex-end;
 }
 
 #clear-all{
-    margin-top: 10px;
+    margin-top: 5px;
     padding: 8px 12px;
     background: #ff4d4d;
     color: white;
@@ -138,6 +139,7 @@ button{
     margin-left: 8px;
     word-break: break-word; 
     margin-right: 10px;
+    cursor: pointer;
 }
 
 #todo-list li:hover{
@@ -208,4 +210,9 @@ button {
 
 button:hover {
     opacity: 0.9;
+}
+
+/* HIGHLIGHT SAAT EDIT */
+input[type="text"]{
+    outline: 2px solid #4f46e5;
 }
