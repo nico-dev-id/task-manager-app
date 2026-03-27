@@ -107,7 +107,17 @@ function setActiveButton(btn){
 //==== FUNCTION TULISAN SISA TASK =====
 function updateTaskCount(){
     const count = todos.filter(todo => !todo.done).length;
-    taskCount.textContent = count === 0 ? "No Tasks left 👀" : count + " tasks left";
+    let message = "";
+    if (count === 0){
+        message = "No tasks left 🎉";
+        taskCount.style.color = "green";
+    } else if (count === 1) {
+        message = "1 task left";
+        taskCount.style.color = "#555";
+    } else {
+        message = `${count} tasks left`;
+    }
+    taskCount.textContent = message;
 }
 
 //5. EVENT
