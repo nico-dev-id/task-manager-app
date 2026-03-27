@@ -92,6 +92,26 @@ button{
     border-radius: 6px;
 }
 
+/* ===== BUTTON CLEAR ALL =====*/
+.actions {
+    margin-top: 10px;
+    text-align: right;
+}
+
+#clear-all{
+    margin-top: 10px;
+    padding: 8px 12px;
+    background: #ff4d4d;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+#clear-all:hover{
+    background: #e60000;
+}
+
 /* ========== LIST ========== */
 #todo-list {
     list-style: none;

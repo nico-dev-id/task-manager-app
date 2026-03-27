@@ -6,6 +6,7 @@ const allBtn = document.querySelector("#filter-all");
 const activeBtn = document.querySelector("#filter-active");
 const doneBtn = document.querySelector("#filter-done");
 const taskCount = document.querySelector("#task-count");
+const clearBtn = document.querySelector("#clear-all");
 
 //2. DATA
 let todos = [];
@@ -166,6 +167,19 @@ list.addEventListener("click", function(e){
             todos.splice(index, 1); 
             updateApp();
         }, ANIMATION_DURATION);
+    }
+});
+
+//==== EVENT TOMBOL CLEAR ALL =====
+clearBtn.addEventListener("click", () => {
+    const confirmClear = confirm("Delete all tasks?");
+
+    if (confirmClear) {
+        todos = [];
+
+        localStorage.removeItem("todos");
+        renderTodos();
+        updateTaskCount();
     }
 });
 
