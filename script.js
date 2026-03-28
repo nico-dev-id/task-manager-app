@@ -18,6 +18,17 @@ function loadData(){
     if (saved){
         todos = JSON.parse(saved);
 
+        //tambah id jika belum ada
+        todos = todos.map(todo => {
+            if (!todo.id) {
+                return {
+                    ...todo,
+                    id:Date.now() + Math.random()
+                };
+            }
+            return todo;
+        });
+
         //console.log("Load data dari todos");
     }
 }
@@ -45,7 +56,11 @@ function renderTodos(){
     }
 
     filteredTodos.forEach(function(todo){ 
+
+console.log({id: todo.id, text:todo.text, done:todo.done});
+
         const li = document.createElement("li"); 
+        li.dataset.id = todo.id;
 
         //checkbok
         const checkbox = document.createElement("input");
@@ -102,6 +117,7 @@ function renderTodos(){
         list.appendChild(li);
 
         //console.log(todo.text);
+        //console.log("ID:", todo.id, "TEXT:", todo.text);
     });
 }
 
@@ -120,6 +136,7 @@ function addTodo(){
     } 
 
     todos.push({
+        id: Date.now(),
         text: value,
         done: false
     });
@@ -170,16 +187,17 @@ input.addEventListener("keydown", function(e){
 list.addEventListener("change", function(e){
     if (e.target.type === "checkbox"){
         //console.log("Checkbox ditekan");
-
         const li = e.target.parentElement;
-        const index = Array.from(list.children).indexOf(li);
 
-        todos[index].done = e.target.checked;
-        
-        //console.log("index", index);
-        //console.log(todos);
+        const id = Number(li.dataset.id);
+        const todo = todos.find(todo => todo.id === id);
+        if (todo){
+            todo.done = e.target.checked;
 
-        updateApp();
+            updateApp();
+
+            //console.log(todos);
+        }
     }
 });
 
@@ -187,16 +205,16 @@ list.addEventListener("change", function(e){
 list.addEventListener("click", function(e){
     if (e.target.tagName === "BUTTON"){
         //console.log("Tombol Delete Ditekan");
-
         const li = e.target.parentElement;
-        const index = Array.from(list.children).indexOf(li);
+
+        const id = Number(li.dataset.id);
 
         //handel delet dgn animasi sebelum hapus data
         li.classList.add("fade-out"); 
         
         const ANIMATION_DURATION = 200;
         setTimeout(() => {
-            todos.splice(index, 1); 
+            todos = todos.filter(todo => todo.id !== id); 
             updateApp();
         }, ANIMATION_DURATION);
     }
