@@ -132,6 +132,8 @@ button{
     margin-top: 6px;
     border-radius: 8px;
     animation: fadeIn 0.3s ease;
+
+    transition: all 0.2s ease; /* drag item */
 }
 
 #todo-list span{
@@ -215,4 +217,35 @@ button:hover {
 /* HIGHLIGHT SAAT EDIT */
 input[type="text"]{
     outline: 2px solid #4f46e5;
+}
+
+/* Responsive */
+@media (max-width: 500px) {
+    .app {
+        padding: 20px 15px;
+    }
+
+    .input-group {
+        flex-direction: column;
+    }
+
+    #add-btn {
+        width: 100%;
+    }
+
+    .filters {
+        flex-direction: column;
+    }
+
+    .filters button {
+        width: 100%;
+    }
+
+    .actions {
+        justify-content: center;
+    }
+
+    #clear-all {
+        width: 100%;
+    }
 }

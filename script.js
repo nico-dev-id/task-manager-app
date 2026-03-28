@@ -11,6 +11,7 @@ const clearBtn = document.querySelector("#clear-all");
 //2. DATA
 let todos = [];
 let filter = "all"; 
+let draggedItem = null;
 
 //3. INIT (LOAD DATA)
 function loadData(){
@@ -57,10 +58,68 @@ function renderTodos(){
 
     filteredTodos.forEach(function(todo){ 
 
-console.log({id: todo.id, text:todo.text, done:todo.done});
+//console.log({id: todo.id, text:todo.text, done:todo.done});
 
         const li = document.createElement("li"); 
         li.dataset.id = todo.id;
+
+        //handle drag item
+        li.setAttribute("draggable", true);
+        li.addEventListener("dragstart", () => {
+            draggedItem = li;
+            li.style.opacity = "0.5";
+            //console.log(draggedItem);
+
+            //garis hilang saat batal pindah item
+            li.addEventListener("dragend", () => {
+                li.style.opacity = "1";
+                document.querySelectorAll("#todo-list li").forEach(item => {
+                    item.style.borderTop = "";
+                    item.style.borderBottom = "";
+                });
+            });
+
+            li.addEventListener("dragover", (e) => {
+                e.preventDefault();
+                const bounding = li.getBoundingClientRect();
+                const offset = e.clientY - bounding.top;
+                const middle =bounding.height / 2;
+
+                if (offset > middle) {
+                    li.style.borderBottom = "2px solid #4f46e5";
+                    li.style.borderTop = "";
+                } else {
+                    li.style.borderTop = "2px solid #4f46e5";
+                    li.style.borderBottom = "";
+                }
+                //console.log(offset, middle);
+            });
+
+        //handle item pindah saat di drag
+        li.addEventListener("drop", (e) => {
+            e.preventDefault();
+            if (draggedItem === li) return;
+
+            const list = li.parentElement;
+
+            const bounding = li.getBoundingClientRect();
+            const offset = e.clientY - bounding.top;
+            const middle = bounding.height / 2;
+
+            if (offset > middle) {
+                list.insertBefore(draggedItem, li.nextSibling);
+            } else {
+                list.insertBefore(draggedItem, li);
+            }
+            updateOrder();
+
+            //garis hilang saat pindah item
+            document.querySelectorAll("#todo-list li").forEach(item => {
+                item.style.borderTop ="";
+                item.style.borderBottom = ""; 
+            });
+        });
+        });
 
         //checkbok
         const checkbox = document.createElement("input");
@@ -144,6 +203,24 @@ function addTodo(){
 
     input.value = "";
     input.focus();
+}
+
+//==== FUNCTION UPDATE ORDER ====== 
+//unutk drag and drop
+function updateOrder(){
+    const newOrder = [];
+    const items = list.querySelectorAll("li");
+
+    items.forEach(li => {
+        const id =Number(li.dataset.id);
+        const todo = todos.find(todo => todo.id === id);
+
+        if (todo) {
+            newOrder.push(todo);
+        }
+    });
+    todos= newOrder;
+    saveData();
 }
 
 //==== FUNCTION WARNA FILTER BUTTON =====
