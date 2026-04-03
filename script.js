@@ -1,4 +1,6 @@
-//1. ELEMENT
+//=========================================
+//              SELECT ELEMENT
+//=========================================
 const input = document.querySelector("#todo-input");
 const button = document.querySelector("#add-btn");
 const list = document.querySelector("#todo-list");
@@ -8,12 +10,24 @@ const doneBtn = document.querySelector("#filter-done");
 const taskCount = document.querySelector("#task-count");
 const clearBtn = document.querySelector("#clear-all");
 
-//2. DATA
+//==========================================
+//             DATA / STATE
+//==========================================
 let todos = [];
 let filter = "all"; 
 let draggedItem = null;
 
-//3. INIT (LOAD DATA)
+//==========================================
+//              FUNCTION
+//==========================================
+
+//      ===== FUNCTION SAVE DATA ======
+function saveData(){
+    localStorage.setItem("todos", JSON.stringify(todos));
+    //console.log("Data Disimpan");
+}
+
+//      ===== FUNCTION LOAD DATA =====
 function loadData(){
     const saved = localStorage.getItem("todos");
     if (saved){
@@ -34,33 +48,19 @@ function loadData(){
     }
 }
 
-//4. FUNCTION
-//===== FUNCTION SAVE DATA ======
-function saveData(){
-    localStorage.setItem("todos", JSON.stringify(todos));
-    //console.log("Data Disimpan");
+//      ==== FUNCTION FILTER ====
+function getFilteredTodos() {
+    if (filter === "active") {
+        return todos.filter(todo => !todo.done);
+    } else if (filter === "completed") {
+        return todos.filter(todo => todo.done);
+    }
+    return todos;
 }
 
-//===== FUNCTION RENDER TODOS =======
-function renderTodos(){
-    list.innerHTML = ""; //1
-
-    updateTaskCount(); 
-
-    //filter
-    let filteredTodos = todos; 
-
-    if (filter === "active"){
-        filteredTodos = todos.filter(todo => !todo.done);
-    } else if(filter === "completed"){
-        filteredTodos = todos.filter(todo => todo.done);
-    }
-
-    filteredTodos.forEach(function(todo){ 
-
-//console.log({id: todo.id, text:todo.text, done:todo.done});
-
-        const li = document.createElement("li"); 
+//       ==== FUNCTION CREAT ELEMENT TODO ====
+function createTodoElement(todo) {
+    const li = document.createElement("li"); 
         li.dataset.id = todo.id;
 
         //handle drag item
@@ -142,11 +142,11 @@ function renderTodos(){
             input.select();
 
             input.addEventListener("blur", () => {
-                if (isCancelled) return; //ESC jangan save
+                if (isCancelled) return; //ESC Batal atau jangan save
                 if (input.value.trim() === "") return;
 
                 todo.text = input.value;
-                updateApp();
+                syncApp();
             });
 
             input.addEventListener("keydown", (e) => {
@@ -175,18 +175,32 @@ function renderTodos(){
 
         list.appendChild(li);
 
+        return li;
         //console.log(todo.text);
         //console.log("ID:", todo.id, "TEXT:", todo.text);
+}
+
+//      ===== FUNCTION RENDER TODOS =======
+function renderTodos(){
+    list.innerHTML = "";
+    updateTaskCount(); 
+
+    //filter
+    const filteredTodos = getFilteredTodos();
+
+    filteredTodos.forEach(todo => { 
+        const li = createTodoElement(todo);
+        list.appendChild(li);
     });
 }
 
-//==== FUNCTION UPDATE DATA ====
-function updateApp() {
+//      ==== FUNCTION UPDATE APP ====
+function syncApp() {
     saveData();
     renderTodos();
 }
 
-//====== FUNCTION ADD TODO ========
+//      ====== FUNCTION ADD TODO ========
 function addTodo(){
     const value = input.value;
     if (!value.trim()){
@@ -199,13 +213,13 @@ function addTodo(){
         text: value,
         done: false
     });
-    updateApp();
+    syncApp();
 
     input.value = "";
     input.focus();
 }
 
-//==== FUNCTION UPDATE ORDER ====== 
+//      ==== FUNCTION UPDATE ORDER ====== 
 //unutk drag and drop
 function updateOrder(){
     const newOrder = [];
@@ -223,7 +237,7 @@ function updateOrder(){
     saveData();
 }
 
-//==== FUNCTION WARNA FILTER BUTTON =====
+//      ==== FUNCTION WARNA FILTER BUTTON =====
 function setActiveButton(btn){
     allBtn.classList.remove("active");
     activeBtn.classList.remove("active");
@@ -231,7 +245,7 @@ function setActiveButton(btn){
     btn.classList.add("active");
 }
 
-//==== FUNCTION TULISAN SISA TASK =====
+//      ==== FUNCTION TULISAN SISA TASK =====
 function updateTaskCount(){
     const count = todos.filter(todo => !todo.done).length;
     let message = "";
@@ -247,8 +261,35 @@ function updateTaskCount(){
     taskCount.textContent = message;
 }
 
-//5. EVENT
-//==== EVENT TOMBOL TAMBAH ====
+//      ==== FUNCTION HANDLE DELETE ====
+function handleDelete (id, li) {
+    li.classList.add("fade-out"); 
+        
+        const ANIMATION_DURATION = 200;
+        setTimeout(() => {
+            todos = todos.filter(todo => todo.id !== id); 
+            syncApp();
+        }, ANIMATION_DURATION);
+}
+
+//      ==== FUNCTION HANDLE CLEAR ALL ====
+function handleClearAll() {
+    const confirmClear = confirm("Delete all tasks?");
+
+    if (confirmClear) {
+        todos = [];
+
+        localStorage.removeItem("todos");
+        syncApp();
+        updateTaskCount();
+    }
+}
+
+//====================================
+//              EVENT
+//====================================
+
+//      ==== EVENT TOMBOL TAMBAH ====
 button.addEventListener("click", addTodo);
 //console.log(todos);
 
@@ -260,7 +301,7 @@ input.addEventListener("keydown", function(e){
     }
 });
 
-//====== CEKBOX ======
+//      ====== CEKBOX ======
 list.addEventListener("change", function(e){
     if (e.target.type === "checkbox"){
         //console.log("Checkbox ditekan");
@@ -271,46 +312,28 @@ list.addEventListener("change", function(e){
         if (todo){
             todo.done = e.target.checked;
 
-            updateApp();
+            syncApp();
 
             //console.log(todos);
         }
     }
 });
 
-//===== EVENT TOMBOL DELETE =====
+//      ===== EVENT TOMBOL DELETE =====
 list.addEventListener("click", function(e){
     if (e.target.tagName === "BUTTON"){
         //console.log("Tombol Delete Ditekan");
         const li = e.target.parentElement;
 
         const id = Number(li.dataset.id);
-
-        //handel delet dgn animasi sebelum hapus data
-        li.classList.add("fade-out"); 
-        
-        const ANIMATION_DURATION = 200;
-        setTimeout(() => {
-            todos = todos.filter(todo => todo.id !== id); 
-            updateApp();
-        }, ANIMATION_DURATION);
+        handleDelete(id, li);
     }
 });
 
-//==== EVENT TOMBOL CLEAR ALL =====
-clearBtn.addEventListener("click", () => {
-    const confirmClear = confirm("Delete all tasks?");
+//      ==== EVENT TOMBOL CLEAR ALL =====
+clearBtn.addEventListener("click", handleClearAll);
 
-    if (confirmClear) {
-        todos = [];
-
-        localStorage.removeItem("todos");
-        renderTodos();
-        updateTaskCount();
-    }
-});
-
-//====== FILTER BUTTON =======
+//      ====== FILTER BUTTON =======
 //FILTER ALL
 allBtn.addEventListener("click", function(){
     filter = "all";
@@ -332,7 +355,9 @@ doneBtn.addEventListener("click", function(){
     renderTodos();
 });
 
-//6. RENDER AWAL
+//====================================
+//              RENDER AWAL
+//====================================
 loadData();
 renderTodos();
 setActiveButton(allBtn);
