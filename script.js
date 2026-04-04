@@ -9,6 +9,7 @@ const activeBtn = document.querySelector("#filter-active");
 const doneBtn = document.querySelector("#filter-done");
 const taskCount = document.querySelector("#task-count");
 const clearBtn = document.querySelector("#clear-all");
+const loading = document.querySelector("#loading");
 
 //==========================================
 //             DATA / STATE
@@ -43,7 +44,6 @@ function loadData(){
             }
             return todo;
         });
-
         //console.log("Load data dari todos");
     }
 }
@@ -58,13 +58,68 @@ function getFilteredTodos() {
     return todos;
 }
 
-//       ==== FUNCTION CREAT ELEMENT TODO ====
-function createTodoElement(todo) {
-    const li = document.createElement("li"); 
-        li.dataset.id = todo.id;
+//      ==== HANDLE CHECKBOX ====
+function creatCheckbox(todo) {
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox"; 
+        checkbox.checked = todo.done;
+        return checkbox;
+}
 
-        //handle drag item
-        li.setAttribute("draggable", true);
+//      ==== HANDLE TEXT TODO ====
+function creatTodoText(todo) {
+    const span = document.createElement("span");
+    span.textContent = todo.text;
+        if (todo.done) {
+            span.classList.add("done");
+        }
+        return span;
+}
+
+//      ==== HANDLE DELETE ====
+function creatDeleteButton(todo) {
+    const btn = document.createElement("button");
+    btn.textContent = "X";
+    return btn;
+}
+
+//      ==== HANDLE DOUBLE KLIK EDIT ====
+function attachEditEvent(span, todo) {
+    span.addEventListener("dblclick", () => {
+            const input = document.createElement("input");
+            input.type = "text";
+            input.value = todo.text;
+
+            let isCancelled = false; //flag
+
+            span.replaceWith(input);
+            input.focus();
+            input.select();
+
+            input.addEventListener("blur", () => {
+                if (isCancelled) return; //ESC Batal atau jangan save
+                if (input.value.trim() === "") return;
+
+                todo.text = input.value;
+                syncApp();
+            });
+
+            input.addEventListener("keydown", (e) => {
+                if (e.key === "Enter") {
+                    input.blur();
+                }
+                if (e.key === "Escape") {
+                    isCancelled = true; //tandai cancel
+
+                    renderTodos();
+                }
+            });
+        });
+}
+
+//      ==== HENDLE DRAG DAN DROP ====
+function attachDragEvents(li) {
+    li.setAttribute("draggable", true);
         li.addEventListener("dragstart", () => {
             draggedItem = li;
             li.style.opacity = "0.5";
@@ -119,60 +174,23 @@ function createTodoElement(todo) {
                 item.style.borderBottom = ""; 
             });
         });
-        });
+    });
+}
 
-        //checkbok
-        const checkbox = document.createElement("input");
-        checkbox.type = "checkbox"; 
-        checkbox.checked = todo.done; 
+//       ==== FUNCTION CREAT ELEMENT TODO ====
+function createTodoElement(todo) {
+    const li = document.createElement("li"); 
+        li.dataset.id = todo.id;
 
-        const span = document.createElement("span");
-        span.textContent = todo.text; 
-
-        //handle doble klik untuk edit data
-        span.addEventListener("dblclick", () => {
-            const input = document.createElement("input");
-            input.type = "text";
-            input.value = todo.text;
-
-            let isCancelled = false; //flag
-
-            span.replaceWith(input);
-            input.focus();
-            input.select();
-
-            input.addEventListener("blur", () => {
-                if (isCancelled) return; //ESC Batal atau jangan save
-                if (input.value.trim() === "") return;
-
-                todo.text = input.value;
-                syncApp();
-            });
-
-            input.addEventListener("keydown", (e) => {
-                if (e.key === "Enter") {
-                    input.blur();
-                }
-                if (e.key === "Escape") {
-                    isCancelled = true; //tandai cancel
-
-                    renderTodos();
-                }
-            });
-        });
-
-        if(todo.done){
-            span.classList.add("done");
-        }
-
-        //delete
-        const btn = document.createElement("button");
-        btn.textContent = "X"; //6
+        const checkbox = creatCheckbox(todo); //cekbox
+        const span = creatTodoText(todo); //todo text
+        const btn = creatDeleteButton(todo); //delete
+        attachDragEvents(li); //drag item
+        attachEditEvent(span, todo); //double clik edit
 
         li.appendChild(checkbox);
         li.appendChild(span);
         li.appendChild(btn);
-
         list.appendChild(li);
 
         return li;
@@ -182,16 +200,18 @@ function createTodoElement(todo) {
 
 //      ===== FUNCTION RENDER TODOS =======
 function renderTodos(){
+    loading.style.display = "block";
+
     list.innerHTML = "";
     updateTaskCount(); 
 
-    //filter
-    const filteredTodos = getFilteredTodos();
+    const filteredTodos = getFilteredTodos(); //filter
 
     filteredTodos.forEach(todo => { 
         const li = createTodoElement(todo);
         list.appendChild(li);
     });
+    loading.style.display = "none"
 }
 
 //      ==== FUNCTION UPDATE APP ====
@@ -313,7 +333,6 @@ list.addEventListener("change", function(e){
             todo.done = e.target.checked;
 
             syncApp();
-
             //console.log(todos);
         }
     }
